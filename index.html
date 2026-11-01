@@ -1,0 +1,541 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#131627" />
+  <meta name="description" content="四種手勢控制的兒童體感魔法遊戲。MediaPipe 雙手辨識＋PixelFX 像素特效。" />
+  <title>雙手魔法守護者 | MediaPipe × PixelFX</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Noto+Sans+TC:wght@400;500;600;700;800;900&display=swap');
+:root{font-family:'Noto Sans TC',system-ui,sans-serif;color:#f9f6fa;background:#131627;font-synthesis:none}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse 60% 15% at 50% 0,#32334d 0,transparent 100%),#131627}button{font:inherit;cursor:pointer}button:disabled{opacity:.45;cursor:wait}button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #ffe28d;outline-offset:4px}
+a{color:#d6e7ff} .shell{max-width:1200px;margin:0 auto;padding:0 28px}.topbar{height:84px;border-bottom:1px solid #373b4e;display:flex;align-items:center;justify-content:space-between;gap:20px}.brand{display:flex;align-items:center;gap:12px}.brand-stamp{display:grid;place-items:center;width:46px;height:46px;font-size:30px;font-weight:bold;background:#f3d28a;color:#27213a;border-radius:11px}.brand strong{display:block;font-size:17px;font-weight:800}.brand small{display:block;font:10px 'DM Mono',monospace;color:#b6acbc;letter-spacing:.15em;margin-top:4px}.top-actions{display:flex;gap:9px}.top-actions button,.primary-btn,.outline-btn{padding:12px 18px;border-radius:9px;font-size:13px;font-weight:800;border:1px solid #66617c}.primary-btn{background:#f3d28a;border-color:#f3d28a;color:#2d2440}.outline-btn{background:#222539;color:#fff}.hero{margin:35px 0 23px}.micro-heading{font-size:11px;color:#f3d28a;letter-spacing:.12em}.hero h1{margin:8px 0 7px;font-size:clamp(24px,4vw,43px);letter-spacing:-.04em}.hero h1 em{color:#f4d792;font-style:normal}.hero p{margin:0;color:#bcb8c9;font-size:13px}.hud{display:flex;gap:10px;margin:23px 0 10px}.score-unit{flex:1;padding:12px 17px;background:#22283d;border:1px solid #353b54;border-radius:10px;min-width:0}.score-unit span{display:block;color:#afafc0;font-size:11px}.score-unit strong{display:block;font:800 clamp(18px,2.7vw,30px) 'Noto Sans TC',sans-serif;color:#fff;margin-top:4px;font-variant-numeric:tabular-nums;white-space:nowrap}.score-unit .tiny{display:inline;font-size:12px;margin-left:3px}.score-unit:last-child strong{color:#ffabbb;letter-spacing:.08em}.arena{width:100%;aspect-ratio:16/9;background:#161b35;position:relative;border:2px solid #485072;box-shadow:0 23px 65px #0005;border-radius:13px;overflow:hidden;isolation:isolate}.arena canvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated;pointer-events:none}.arena #effects{z-index:2}.enemy-card{position:absolute;top:6%;left:50%;transform:translateX(-50%);text-align:center;z-index:3;background:#15192bcf;border:1px solid #ffffff35;border-radius:11px;padding:10px 20px;min-width:min(280px,55%);text-shadow:0 1px 4px #000}.enemy-card #target-caption{font:10px 'DM Mono','Noto Sans TC',monospace;color:#e1d3b7}.enemy-card strong{display:block;font-size:16px;margin:3px 0}.enemy-card #target-action{font-size:11px;color:#ded9ea}.danger-bar{height:5px;background:#ffffff28;border-radius:20px;overflow:hidden;margin-top:8px}.danger-bar span{display:block;height:100%;width:100%;background:#f9ad68;transition:width .1s linear}.arena-banner{position:absolute;bottom:6%;left:50%;transform:translateX(-50%);z-index:3;background:#1b203cd9;border:1px solid #e6d5a75e;border-radius:5px;padding:7px 15px;color:#fbecc6;text-align:center;font-size:12px;white-space:nowrap;max-width:80%;overflow:hidden;text-overflow:ellipsis}.camera-box{position:absolute;right:2.2%;top:2.6%;width:22%;aspect-ratio:4/3;z-index:4;border-radius:8px;overflow:hidden;background:#0a0d16;border:2px solid #a09aad55;box-shadow:0 8px 25px #0008}.camera-box video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}.camera-info{position:absolute;left:5px;top:5px;display:flex;gap:5px;align-items:center;background:#080c17d9;border-radius:4px;padding:3px 5px;font:9px 'DM Mono',monospace;color:#fff}.status-dot{display:inline-block;border-radius:50%;height:5px;width:5px;background:#d67d7d}.camera-box.active .status-dot{background:#65e9ad}.camera-hands{position:absolute;left:4px;right:4px;bottom:4px;display:flex;justify-content:space-around;gap:2px;flex-wrap:wrap}.camera-hands span{background:#0c0d16d5;border-radius:3px;color:white;font-size:8px;padding:2px 3px}.status-row{display:flex;justify-content:space-between;align-items:center;gap:10px;color:#bbb9c9;font-size:12px;margin:10px 0 26px}.switch-text{cursor:pointer;display:flex;gap:6px;align-items:center}.switch-text input{accent-color:#f3d28a}.skills-title{display:flex;justify-content:space-between;align-items:end;gap:10px;margin-bottom:13px}.skills-title h2{margin:0;font-size:20px}.skills-title p{font-size:11px;color:#b0afc3;margin:0}.skill-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.skill{background:#1e2537;color:#fff;border:1px solid #43475d;border-radius:12px;text-align:left;min-height:170px;display:flex;flex-direction:column;align-items:flex-start;padding:16px;position:relative;transition:transform .15s,border-color .15s,filter .15s}.skill:hover{transform:translateY(-2px);border-color:#fff8}.skill:active{transform:translateY(1px)}.skill .skill-tag{font-size:10px;color:#d4d6e3}.skill .skill-symbol{font-size:45px;line-height:1.4;filter:drop-shadow(0 0 6px currentColor)}.skill strong{font-size:16px}.skill small{font:9px 'DM Mono',monospace;letter-spacing:.09em;color:#b2b4c5;margin-top:5px}.skill.ice .skill-symbol{color:#83d6fa}.skill.lightning .skill-symbol{color:#cd9dff}.skill.fire .skill-symbol{color:#ffc083}.skill.arcane .skill-symbol{color:#91e7b1}.skill.flash{border-color:#f4d793;filter:brightness(1.7)}.instructions{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:25px 0 38px}.instructions article{border-top:1px solid #52556a;padding-top:14px}.instructions article strong{font-size:12px}.instructions article p{font-size:12px;color:#a6a6b9;line-height:1.8;margin:5px 0}.instructions article p strong{color:#f8e2ac}footer{border-top:1px solid #36394d;padding:23px;text-align:center;color:#9295aa;font-size:10px;line-height:1.8}.result-panel[hidden]{display:none}.result-panel{position:absolute;z-index:9;inset:12% 24%;background:#171a2aef;border:2px solid #f3d28a;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;box-shadow:0 12px 45px #0009;text-align:center}.result-icon{font-size:42px;color:#f3d28a}.result-panel h2{margin:0;font-size:25px}.result-panel p{margin:0 0 10px;color:#f7ddb0;font-size:20px;font-weight:bold}.result-panel button{padding:11px 30px}
+@media(max-width:850px){.topbar{height:auto;min-height:80px;flex-wrap:wrap;padding:12px 0}.hero{margin-top:24px}.skill-grid{grid-template-columns:repeat(2,1fr)}.skill{min-height:132px}.camera-box{width:26%}.instructions{grid-template-columns:1fr;gap:5px}.status-row{flex-wrap:wrap}.result-panel{inset:12% 19%}}
+@media(max-width:560px){.shell{padding:0 12px}.topbar .brand strong{font-size:14px}.topbar .brand small{font-size:8px}.brand-stamp{height:39px;width:39px}.top-actions{width:100%}.top-actions button{flex:1;padding:10px 7px;font-size:11px}.hero h1{font-size:25px}.hero p{font-size:11px}.hud{gap:5px}.score-unit{padding:7px 6px}.score-unit span{font-size:9px}.score-unit strong{font-size:16px}.score-unit:last-child strong{font-size:12px}.enemy-card{min-width:57%;padding:5px 7px;top:4%}.enemy-card strong{font-size:11px}.enemy-card #target-action{font-size:9px}.enemy-card #target-caption{font-size:8px}.arena-banner{font-size:9px;padding:5px}.camera-box{width:28%;right:2%;top:2%}.camera-hands{display:none}.camera-info{font-size:7px}.skill-grid{gap:7px}.skill{padding:10px;min-height:125px}.skill .skill-symbol{font-size:30px}.skill strong{font-size:13px}.skill .skill-tag{font-size:9px}.skill small{font-size:8px}.skills-title{align-items:start;flex-direction:column}.result-panel{inset:10% 9%}.result-panel h2{font-size:18px}.result-icon{font-size:23px}.result-panel p{font-size:16px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important}}
+
+</style>
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-stamp">✶</span>
+        <div><strong>雙手魔法守護者</strong><small>HAND MAGIC · PIXEL ARENA</small></div>
+      </div>
+      <div class="top-actions">
+        <button id="camera-toggle" class="outline-btn">開啟攝影機</button>
+        <button id="start-game" class="primary-btn">開始 60 秒挑戰</button>
+      </div>
+    </header>
+
+    <section class="hero">
+      <div class="micro-heading">揮一揮 · 握緊拳 · 施放你的魔法</div>
+      <h1>不用手把，<em>雙手就是魔法。</em></h1>
+      <p>看見怪物的屬性，做出正確的動作。四種手勢、四種魔法，一起守護魔法城堡！</p>
+    </section>
+
+    <main>
+      <div class="hud">
+        <div class="score-unit"><span>得分</span><strong id="score">0000</strong></div>
+        <div class="score-unit"><span>連擊</span><strong id="combo">× 0</strong></div>
+        <div class="score-unit"><span>剩餘時間</span><strong id="time">60<span class="tiny">秒</span></strong></div>
+        <div class="score-unit"><span>城堡生命</span><strong id="hearts">♥ ♥ ♥</strong></div>
+      </div>
+
+      <section class="arena" id="arena" aria-label="體感魔法遊戲場地">
+        <canvas id="world" width="320" height="180" aria-hidden="true"></canvas>
+        <canvas id="effects" width="320" height="180" aria-hidden="true"></canvas>
+        <div class="enemy-card" id="enemy-card" aria-live="polite">
+          <div id="target-caption">魔法訓練場</div>
+          <strong id="target-name">準備好守護城堡了嗎？</strong>
+          <span id="target-action">先練習四種魔法，然後開始挑戰</span>
+          <div class="danger-bar"><span id="danger-progress"></span></div>
+        </div>
+        <div class="arena-banner" id="arena-banner" aria-live="polite">點擊下方四種魔法即可先練習</div>
+        <div class="camera-box" id="camera-box">
+          <video id="camera" autoplay muted playsinline aria-label="攝影機即時畫面"></video>
+          <div class="camera-info"><span class="status-dot"></span><span id="camera-status">CAMERA OFF</span></div>
+          <div class="camera-hands"><span id="left-hand-status">左手：未偵測</span><span id="right-hand-status">右手：未偵測</span></div>
+        </div>
+        <div class="result-panel" id="result-panel" hidden>
+          <div class="result-icon">✦</div>
+          <h2 id="result-title">挑戰完成！</h2>
+          <p id="result-score">0 分</p>
+          <button id="restart" class="primary-btn">再玩一次</button>
+        </div>
+      </section>
+
+      <div class="status-row">
+        <span id="game-state" role="status">待命中 · 尚未開始挑戰</span>
+        <label class="switch-text"><input id="swap-hands" type="checkbox" /> 左右手辨識相反？點這裡交換</label>
+      </div>
+
+      <section class="skills">
+        <div class="skills-title"><h2>四種魔法</h2><p>可點擊按鈕測試，鍵盤快捷鍵 Q／E／A／D</p></div>
+        <div class="skill-grid">
+          <button class="skill ice" data-skill="leftWave"><span class="skill-tag">Q · 左手揮動</span><span class="skill-symbol">❄</span><strong>冰霜衝擊</strong><small>FROST NOVA</small></button>
+          <button class="skill lightning" data-skill="rightWave"><span class="skill-tag">E · 右手揮動</span><span class="skill-symbol">ϟ</span><strong>雷霆之擊</strong><small>LIGHTNING STRIKE</small></button>
+          <button class="skill fire" data-skill="leftFist"><span class="skill-tag">A · 左手握拳</span><span class="skill-symbol">✹</span><strong>爆裂火花</strong><small>FIREWORK BURST</small></button>
+          <button class="skill arcane" data-skill="rightFist"><span class="skill-tag">D · 右手握拳</span><span class="skill-symbol">◎</span><strong>奧術結界</strong><small>MAGIC CIRCLE</small></button>
+        </div>
+      </section>
+      <div class="instructions">
+        <article><strong>如何揮手？</strong><p>張開手掌，向左或向右<strong>移動一小段距離</strong>，不用劇烈甩動手臂。</p></article>
+        <article><strong>如何握拳？</strong><p>張掌後握成拳頭，停留約<strong>0.2 秒</strong>，再放開即可施放下一次。</p></article>
+        <article><strong>老師提示</strong><p>兩個孩子同時入鏡可能被誤認成同一玩家，建議先一人一鏡頭體驗。使用明亮、簡潔背景。</p></article>
+      </div>
+    </main>
+    <footer>Made for learning · 手勢在瀏覽器本機辨識，不主動上傳影像 · <a href="https://github.com/patch-gg/pixelfx" target="_blank" rel="noreferrer">PixelFX 原始專案</a></footer>
+  </div>
+  <script type="module">
+
+import { FilesetResolver, HandLandmarker } from 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.2.0/+esm';
+import { createFrame, clearFrame, createFx, composite } from 'https://cdn.jsdelivr.net/gh/patch-gg/pixelfx@main/src/core/index.js';
+import * as frostNova from 'https://cdn.jsdelivr.net/gh/patch-gg/pixelfx@main/src/fx/ice/frost-nova.js';
+import * as lightningStrike from 'https://cdn.jsdelivr.net/gh/patch-gg/pixelfx@main/src/fx/lightning/lightning-strike.js';
+import * as fireworkBurst from 'https://cdn.jsdelivr.net/gh/patch-gg/pixelfx@main/src/fx/explosions/firework-burst.js';
+import * as magicCircleCast from 'https://cdn.jsdelivr.net/gh/patch-gg/pixelfx@main/src/fx/arcane/magic-circle-cast.js';
+
+// 這是完整的網頁遊戲原型，而非僅有手勢辨識的示意程式。
+// 技術：MediaPipe Hand Landmarker (2 hands) + PixelFX（四種原始特效）。
+const WASM_URL = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.2.0/wasm';
+const MODEL_URL = 'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task';
+const WIDTH = 320;
+const HEIGHT = 180;
+const GAME_DURATION = 60_000;
+const ATTACK_DURATION = 5500;
+const SPELL_COOLDOWN = 820;
+const WAVING_DISTANCE = 0.11; // normalized camera width, tune 0.09 - 0.16
+const WAVING_WINDOW = 390;    // milliseconds of lateral movement
+const FIST_HOLD = 185;       // milliseconds to confirm a deliberate fist
+
+const SPELLS = {
+  leftWave: {label:'冰霜衝擊', cue:'揮左手', monster:'冰霜怪', color:'#8bd8ff', fx:frostNova},
+  rightWave: {label:'雷霆之擊', cue:'揮右手', monster:'雷電怪', color:'#cfacff', fx:lightningStrike},
+  leftFist: {label:'爆裂火花', cue:'握左拳', monster:'火焰怪', color:'#ffbe83', fx:fireworkBurst},
+  rightFist: {label:'奧術結界', cue:'握右拳', monster:'奧術怪', color:'#9be7b6', fx:magicCircleCast}
+};
+const spellKeys = Object.keys(SPELLS);
+const $ = (id) => document.getElementById(id);
+const video = $('camera');
+const cameraToggle = $('camera-toggle');
+const cameraBox = $('camera-box');
+const cameraStatus = $('camera-status');
+const gameStatus = $('game-state');
+const banner = $('arena-banner');
+const world = $('world');
+const worldCtx = world.getContext('2d', {alpha:false});
+const effectCanvas = $('effects');
+const effectCtx = effectCanvas.getContext('2d');
+worldCtx.imageSmoothingEnabled = false;
+effectCtx.imageSmoothingEnabled = false;
+const fxFrame = createFrame(WIDTH, HEIGHT);
+const fxPixels = new ImageData(WIDTH, HEIGHT);
+let activeEffects = [];
+let landmarker = null;
+let stream = null;
+let lastVideoTime = -1;
+let lastDetectTime = 0;
+let nowPrevious = performance.now();
+let mode = 'idle';
+let score = 0;
+let combo = 0;
+let lives = 3;
+let remainingMs = GAME_DURATION;
+let gameEndAt = 0;
+let target = null;
+let nextTargetTime = 0;
+let bannerUntil = 0;
+let lastTargetSkill = null;
+const trackers = {
+  Left: makeHandTracker(),
+  Right: makeHandTracker()
+};
+
+function makeHandTracker() {
+  return {
+    seen:false, pose:'none', openSince:0, fistSince:0,
+    fistLatched:false, lastCast:-Infinity, previousOpen:false,
+    movement:[], lastSeenAt:0
+  };
+}
+function showBanner(message, duration = 1300) {
+  banner.textContent = message;
+  bannerUntil = performance.now() + duration;
+}
+function setStatus(message) { gameStatus.textContent = message; }
+function scoreUi() {
+  $('score').textContent = String(score).padStart(4, '0');
+  $('combo').textContent = `× ${combo}`;
+  $('hearts').textContent = '♥ '.repeat(lives).trim() || '—';
+  $('time').innerHTML = `${Math.ceil(remainingMs/1000)}<span class="tiny">秒</span>`;
+}
+function cueUi() {
+  if (!target) {
+    $('target-caption').textContent = mode === 'idle' ? '魔法訓練場' : '下一隻怪物即將出現';
+    $('target-name').textContent = mode === 'idle' ? '準備好守護城堡了嗎？' : '準備下一招！';
+    $('target-action').textContent = mode === 'idle' ? '先練習四種魔法，然後開始挑戰' : '看好怪物提示，施放對應魔法';
+    $('danger-progress').style.width = '0%';
+    return;
+  }
+  const s = SPELLS[target.skill];
+  $('target-caption').textContent = '新怪物出現';
+  $('target-name').textContent = s.monster;
+  $('target-action').textContent = `使用 ${s.cue} · ${s.label}`;
+  $('danger-progress').style.background = s.color;
+}
+function nextTarget(now) {
+  let skill;
+  // 避免連續出現相同題目，更適合兒童練習四種手勢。
+  do { skill = spellKeys[Math.floor(Math.random() * spellKeys.length)]; }
+  while (skill === lastTargetSkill);
+  lastTargetSkill = skill;
+  const graceMs = Math.max(2900, ATTACK_DURATION - Math.floor(score / 600) * 250);
+  target = { skill, created:now, deadline:now + graceMs, graceMs };
+  cueUi();
+}
+function startGame() {
+  const now = performance.now();
+  mode = 'running';
+  score = 0;
+  combo = 0;
+  lives = 3;
+  remainingMs = GAME_DURATION;
+  gameEndAt = now + GAME_DURATION;
+  nextTargetTime = now + 650;
+  target = null;
+  lastTargetSkill = null;
+  $('result-panel').hidden = true;
+  $('start-game').textContent = '重新開始';
+  scoreUi();
+  cueUi();
+  showBanner('準備！看到怪物後，使用對應魔法！', 1900);
+  setStatus(stream ? '挑戰進行中 · 攝影機體感控制' : '挑戰進行中 · 可使用 Q/E/A/D 或下方按鈕');
+}
+function finishGame() {
+  if (mode !== 'running') return;
+  mode = 'finished';
+  remainingMs = Math.max(0, remainingMs);
+  scoreUi();
+  target = null;
+  $('result-panel').hidden = false;
+  $('result-title').textContent = lives <= 0 ? '城堡需要你的守護！' : '挑戰完成！';
+  $('result-score').textContent = `${score} 分 · 你完成了魔法挑戰`;
+  cueUi();
+  setStatus('挑戰結束 · 可以重新開始');
+  showBanner('完成挑戰！', 2000);
+}
+
+function fxAt(skill, x, y) {
+  try {
+    const fx = createFx(SPELLS[skill].fx, {
+      x: Math.round(x), y: Math.round(y),
+      seed: Math.floor(Math.random() * 10000000)
+    });
+    activeEffects.push({fx, end:performance.now()+2500, hardEnd:performance.now()+3700, stopped:false});
+    if (activeEffects.length > 18) activeEffects.shift()?.fx.stop();
+  } catch (e) {
+    console.error('PixelFX effect error', e);
+    setStatus(`特效載入錯誤：${e.message}`);
+  }
+}
+
+// Both pointer buttons and recognized hand gestures use exactly the same game action.
+function cast(skill, source='manual') {
+  if (!SPELLS[skill]) return;
+  const now = performance.now();
+  const skillButton = document.querySelector(`[data-skill="${skill}"]`);
+  skillButton?.classList.add('flash');
+  window.setTimeout(() => skillButton?.classList.remove('flash'), 160);
+  if (mode !== 'running') {
+    // Practice mode remains available before starting and after the game.
+    fxAt(skill, WIDTH*0.5, HEIGHT*0.57);
+    showBanner(`練習成功 · ${SPELLS[skill].label}`, 900);
+    return;
+  }
+  if (!target) {
+    fxAt(skill, WIDTH*.50, HEIGHT*.57);
+    showBanner(`${SPELLS[skill].label}！下一隻怪物即將出現`, 550);
+    return;
+  }
+  const isCorrect = target.skill === skill;
+  fxAt(skill, isCorrect ? WIDTH*.50 : WIDTH*.68, HEIGHT*.57);
+  if (isCorrect) {
+    combo++;
+    const points = 100 + Math.min(combo-1, 10)*20;
+    score += points;
+    target = null;
+    cueUi();
+    nextTargetTime = now + 660;
+    showBanner(`命中！ +${points} 分　${combo >= 2 ? `${combo} 連擊` : '太棒了！'}`, 800);
+  } else {
+    combo = 0;
+    showBanner(`再試一次！請使用「${SPELLS[target.skill].cue}」`, 940);
+  }
+  scoreUi();
+}
+
+function length(a,b) { return Math.hypot((a.x-b.x)*1.25, a.y-b.y); }
+function classify(lm) {
+  const digits = [[8,6,5],[12,10,9],[16,14,13],[20,18,17]];
+  let open = 0;
+  for (const [tip, pip, mcp] of digits) {
+    if (length(lm[tip], lm[mcp]) > length(lm[pip], lm[mcp]) * 1.19) open++;
+  }
+  if (open <= 1) return 'fist';
+  if (open >= 3) return 'open';
+  return 'neutral';
+}
+function handProcess(result, now) {
+  for (const h of Object.values(trackers)) h.seen = false;
+  const landmarks = result.landmarks || [];
+  for (let i=0; i<landmarks.length; i++) {
+    const lm = landmarks[i];
+    const handCategory = result.handedness?.[i]?.[0]?.categoryName;
+    if (handCategory !== 'Left' && handCategory !== 'Right') continue;
+    const name = $('swap-hands').checked ? (handCategory==='Left'?'Right':'Left') : handCategory;
+    const h = trackers[name];
+    h.seen = true;
+    h.lastSeenAt = now;
+    const pose = classify(lm);
+    const wasFist = h.pose === 'fist';
+    h.pose = pose;
+    const palmX = (lm[0].x + lm[9].x) * 0.5;
+
+    if (pose === 'fist') {
+      h.openSince = 0;
+      h.movement.length = 0;
+      if (!wasFist) h.fistSince = now;
+      if (!h.fistLatched && now-h.fistSince >= FIST_HOLD && now-h.lastCast >= SPELL_COOLDOWN) {
+        h.fistLatched = true;
+        h.lastCast = now;
+        cast(name === 'Left' ? 'leftFist' : 'rightFist', 'camera');
+      }
+    } else {
+      h.fistSince = 0;
+      h.fistLatched = false; // must open fingers before another fist cast
+      if (pose === 'open') {
+        if (!h.openSince) h.openSince = now;
+        h.movement.push({x:palmX,t:now});
+        while (h.movement.length && now-h.movement[0].t>WAVING_WINDOW) h.movement.shift();
+        if (now-h.openSince >= 200 && h.movement.length>=2 && now-h.lastCast>=SPELL_COOLDOWN) {
+          // Use a 160ms+ trajectory, rather than detecting a shake in a single frame.
+          const earliest = h.movement.find(p => now-p.t>=155) || h.movement[0];
+          const shift = Math.abs(palmX - earliest.x);
+          if (shift >= WAVING_DISTANCE) {
+            h.lastCast = now;
+            h.movement = [{x:palmX,t:now}];
+            cast(name === 'Left' ? 'leftWave' : 'rightWave', 'camera');
+          }
+        }
+      } else {
+        h.openSince = 0;
+        h.movement.length = 0;
+      }
+    }
+  }
+  for (const [name, h] of Object.entries(trackers)) {
+    if (!h.seen && now-h.lastSeenAt > 180) {
+      h.pose = 'none';
+      h.openSince = 0;
+      h.fistSince = 0;
+      h.fistLatched = false;
+      h.movement.length = 0;
+    }
+    const label = name === 'Left' ? $('left-hand-status') : $('right-hand-status');
+    const side = name === 'Left' ? '左手' : '右手';
+    label.textContent = `${side}：${h.seen ? ({fist:'握拳',open:'張掌',neutral:'調整'}[h.pose]) : '未偵測'}`;
+  }
+}
+async function openCamera() {
+  if (stream) { closeCamera(); return; }
+  if (!navigator.mediaDevices?.getUserMedia) {
+    setStatus('攝影機需在 HTTPS 或 localhost 使用；仍可透過按鈕遊玩。');
+    return;
+  }
+  cameraToggle.disabled = true;
+  cameraStatus.textContent = 'REQUESTING...';
+  try {
+    // Request permission immediately from the button click, before loading WASM.
+    const obtained = await navigator.mediaDevices.getUserMedia({
+      audio:false,
+      video:{facingMode:'user',width:{ideal:640},height:{ideal:480}}
+    });
+    stream = obtained;
+    video.srcObject = obtained;
+    await video.play();
+    cameraStatus.textContent = 'LOADING AI...';
+    if (!landmarker) {
+      const resolver = await FilesetResolver.forVisionTasks(WASM_URL);
+      landmarker = await HandLandmarker.createFromOptions(resolver, {
+        baseOptions:{modelAssetPath:MODEL_URL,delegate:'CPU'},
+        runningMode:'VIDEO', numHands:2,
+        minHandDetectionConfidence:.62,
+        minHandPresenceConfidence:.58,
+        minTrackingConfidence:.55
+      });
+    }
+    cameraBox.classList.add('active');
+    cameraStatus.textContent = 'LIVE · 2 HANDS';
+    cameraToggle.textContent = '關閉攝影機';
+    setStatus('攝影機已啟用 · 請讓左右手清楚出現在鏡頭中');
+  } catch(e) {
+    console.error('Camera start failed', e);
+    setStatus(`無法啟用攝影機：${e.message}（仍可點擊技能按鈕玩）`);
+    closeCamera(false);
+  } finally { cameraToggle.disabled = false; }
+}
+function closeCamera(updateText=true) {
+  stream?.getTracks().forEach(track => track.stop());
+  stream = null;
+  video.pause();
+  video.srcObject = null;
+  cameraBox.classList.remove('active');
+  cameraStatus.textContent = 'CAMERA OFF';
+  cameraToggle.textContent = '開啟攝影機';
+  lastVideoTime = -1;
+  for (const hand of Object.values(trackers)) Object.assign(hand, makeHandTracker());
+  $('left-hand-status').textContent = '左手：未偵測';
+  $('right-hand-status').textContent = '右手：未偵測';
+  if (updateText) setStatus('攝影機已關閉 · 仍可使用鍵盤或技能按鈕');
+}
+
+// Draw an original little pixel monster. The four actual spell animations come from PixelFX.
+function pixelMonster(ctx, x, y, skill, now, urgency) {
+  const rgb = {leftWave:['#489bc1','#a5eeff'],rightWave:['#805cbb','#e0c3ff'],leftFist:['#dc7649','#ffe0a1'],rightFist:['#469f79','#b8f6c2']}[skill];
+  const bob = Math.round(Math.sin(now/290)*2);
+  const sway = Math.sin(now/330) * (urgency > .7 ? 2 : 1);
+  x = Math.round(x+sway); y = Math.round(y+bob);
+  ctx.fillStyle='#0b122480';ctx.fillRect(x-23,y+29,46,4);
+  ctx.fillStyle=rgb[0];
+  ctx.fillRect(x-15,y-11,30,33);
+  ctx.fillRect(x-20,y-3,40,19);
+  ctx.fillRect(x-13,y-22,9,14);
+  ctx.fillRect(x+4,y-22,9,14);
+  ctx.fillRect(x-26,y+9,8,11);
+  ctx.fillRect(x+18,y+9,8,11);
+  ctx.fillRect(x-13,y+19,10,11);
+  ctx.fillRect(x+3,y+19,10,11);
+  ctx.fillStyle=rgb[1];
+  ctx.fillRect(x-12,y-18,4,7);
+  ctx.fillRect(x+8,y-18,4,7);
+  ctx.fillRect(x-10,y-7,20,6);
+  ctx.fillStyle='#fff'; ctx.fillRect(x-12,y+1,8,8);ctx.fillRect(x+4,y+1,8,8);
+  ctx.fillStyle='#131627';ctx.fillRect(x-7,y+3,3,5);ctx.fillRect(x+8,y+3,3,5);
+  ctx.fillStyle='#462736';ctx.fillRect(x-5,y+14,10,3);
+  if (urgency>.67) {
+    ctx.fillStyle='#ffe58b';ctx.fillRect(x-1,y-30,3,5);
+  }
+}
+function drawLandscape(now) {
+  const ctx=worldCtx;
+  ctx.fillStyle='#171c3b';ctx.fillRect(0,0,WIDTH,HEIGHT);
+  ctx.fillStyle='#273458';ctx.fillRect(0,0,WIDTH,95);
+  // Star field is deterministic; no flashing or moving fine background noise.
+  for(let i=0;i<36;i++) {
+    const x = (i*79+31)%WIDTH;
+    const y = (i*29+11)%78;
+    ctx.fillStyle = i%3===0?'#e1d8d3':'#7184b3';
+    ctx.fillRect(x,y, i%5===0?2:1,i%4===0?2:1);
+  }
+  ctx.fillStyle='#eacb91';ctx.fillRect(28,21,18,18);ctx.fillStyle='#273458';ctx.fillRect(23,18,18,18);
+  ctx.fillStyle='#252a50';
+  ctx.beginPath();ctx.moveTo(0,130);ctx.lineTo(0,74);ctx.lineTo(49,112);ctx.lineTo(89,76);ctx.lineTo(153,121);ctx.lineTo(212,88);ctx.lineTo(273,126);ctx.lineTo(320,83);ctx.lineTo(320,160);ctx.closePath();ctx.fill();
+  ctx.fillStyle='#344162';ctx.fillRect(0,145,WIDTH,35);
+  ctx.fillStyle='#43516e';ctx.fillRect(0,157,WIDTH,3);
+  // Pixel towers in the distance.
+  ctx.fillStyle='#4b5379';
+  for (const cx of [35,282]) {
+    ctx.fillRect(cx-15,114,30,34);ctx.fillRect(cx-19,109,9,8);ctx.fillRect(cx+10,109,9,8);
+    ctx.fillRect(cx-4,92,8,22);ctx.fillRect(cx-8,98,16,8);
+    ctx.fillStyle='#edc48b';ctx.fillRect(cx-3,122,6,10);ctx.fillStyle='#4b5379';
+  }
+  ctx.fillStyle='#263453';ctx.fillRect(95,165,134,4);
+  const ring=50+Math.sin(now/390)*3;
+  ctx.strokeStyle='#95bcd177';ctx.lineWidth=1;
+  ctx.beginPath();ctx.ellipse(160,123,ring,21,0,0,Math.PI*2);ctx.stroke();
+  ctx.fillStyle='#f3d08a';ctx.fillRect(114,159,92,2);
+  if (target) pixelMonster(ctx,160,105,target.skill,now,1-(target.deadline-now)/target.graceMs);
+  else if (mode==='idle') pixelMonster(ctx,160,106,'rightFist',now,0);
+  // Tiny bottom-left/bottom-right crystals; no external artwork required.
+  for(const cx of [83,242]) {
+    ctx.fillStyle='#8bc1da';ctx.fillRect(cx,142,3,10);ctx.fillRect(cx-3,146,3,6);ctx.fillStyle='#b7eaf1';ctx.fillRect(cx+1,143,1,5);
+  }
+}
+function renderEffects(now, dt) {
+  clearFrame(fxFrame);
+  for (let i = activeEffects.length - 1; i>=0; i--) {
+    const e = activeEffects[i];
+    try {
+      if (now>=e.end && !e.stopped) {e.fx.stop();e.stopped=true;}
+      e.fx.update(dt);
+      if (e.fx.done() || now>=e.hardEnd) activeEffects.splice(i,1);
+      else e.fx.draw(fxFrame);
+    } catch (error) {
+      console.error('PixelFX frame error', error);
+      activeEffects.splice(i,1);
+    }
+  }
+  composite(fxFrame,fxPixels.data,null);
+  effectCtx.putImageData(fxPixels,0,0);
+}
+function loop(now) {
+  const dt = Math.min((now-nowPrevious)/1000, 1/30);
+  nowPrevious = now;
+  if (stream && landmarker && video.readyState>=2 && video.currentTime!==lastVideoTime && now-lastDetectTime>43) {
+    lastVideoTime = video.currentTime;
+    lastDetectTime = now;
+    try { handProcess(landmarker.detectForVideo(video,now),now); }
+    catch(e) { cameraStatus.textContent = 'TRACKING ERROR';console.warn('Hand detection error',e); }
+  }
+  if (mode==='running') {
+    remainingMs = Math.max(0,gameEndAt-now);
+    if (remainingMs<=0) finishGame();
+    else if (target && now>=target.deadline) {
+      target=null;
+      combo=0;
+      lives=Math.max(0,lives-1);
+      scoreUi();cueUi();
+      showBanner('怪物突破防線！少一顆愛心',1100);
+      nextTargetTime = now + 770;
+      if (lives===0) finishGame();
+    } else if (!target && now>=nextTargetTime) nextTarget(now);
+    if (target) $('danger-progress').style.width = `${Math.max(0,Math.min(100,(target.deadline-now)/target.graceMs*100))}%`;
+    scoreUi();
+  }
+  if (bannerUntil && now>bannerUntil) {
+    banner.textContent = mode==='running' ? '使用正確手勢擊敗怪物！' : '可點擊下方按鈕練習四種魔法';
+    bannerUntil=0;
+  }
+  drawLandscape(now);
+  renderEffects(now,dt);
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+$('camera-toggle').addEventListener('click',openCamera);
+$('start-game').addEventListener('click',startGame);
+$('restart').addEventListener('click',startGame);
+document.querySelectorAll('[data-skill]').forEach((btn) => {
+  btn.addEventListener('click',()=>cast(btn.dataset.skill,'button'));
+});
+const keyboardMap={KeyQ:'leftWave',KeyE:'rightWave',KeyA:'leftFist',KeyD:'rightFist'};
+window.addEventListener('keydown',event=>{
+  const skill=keyboardMap[event.code];
+  if (!skill || event.repeat || event.altKey || event.ctrlKey || event.metaKey) return;
+  if (event.target instanceof HTMLElement && /input|textarea|select/i.test(event.target.tagName)) return;
+  event.preventDefault();cast(skill,'keyboard');
+});
+$('swap-hands').addEventListener('change',()=>{
+  Object.values(trackers).forEach(h=>Object.assign(h,makeHandTracker()));
+  showBanner('已更新左右手設定，試著揮左手確認是否正確',1400);
+});
+window.addEventListener('pagehide',()=>closeCamera(false));
+scoreUi();
+cueUi();
+
+</script>
+</body>
+</html>
