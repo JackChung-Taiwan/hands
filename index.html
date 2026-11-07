@@ -2,17 +2,58 @@
 <html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#090b10"><title>手勢魔法 · Hand Magic FX</title><style>
 *{box-sizing:border-box}body{margin:0;background:#090b10;color:#eee;font:14px system-ui,sans-serif;overflow:hidden}video,canvas{position:fixed;inset:0;width:100%;height:100%;object-fit:cover}video{transform:scaleX(-1)}canvas{pointer-events:none;image-rendering:pixelated}button,select{font:inherit;color:#eee;background:#20242de8;border:1px solid #ffffff30;border-radius:8px;padding:9px 12px;cursor:pointer}button:focus-visible,select:focus-visible{outline:2px solid #9edaff}button:disabled{opacity:.5}#bar{position:fixed;top:16px;left:16px;right:16px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}#status{font-size:12px;color:#c5ccd6;background:#1119;padding:8px;border-radius:8px}#help{position:fixed;bottom:18px;left:18px;max-height:65vh;overflow:auto;width:min(470px,calc(100% - 36px));padding:18px;background:#10141aee;border:1px solid #ffffff20;border-radius:12px}h1{font-size:18px;margin:0 0 8px}p{color:#b5bfcc;line-height:1.6;font-size:12px}#list{display:grid;grid-template-columns:1fr 1fr;gap:6px}#list button{text-align:left;font-size:12px}#reveal{position:fixed;right:16px;bottom:16px;opacity:.45}.clean #bar,.clean #help{display:none}body.dark video{visibility:hidden}[hidden]{display:none!important}@media(max-width:600px){#bar{top:8px;left:8px;right:8px}button,select{padding:8px;font-size:12px}#help{bottom:58px;left:10px;width:calc(100% - 20px)}}
 </style></head><body><video id="camera" autoplay muted playsinline></video><canvas id="fx"></canvas><canvas id="pixel"></canvas>
-<div id="bar"><button id="start">開啟攝影機</button><button id="guide">手勢表</button><button id="background">黑色背景</button><button id="full">全螢幕</button><button id="hide">隱藏介面</button><select id="quality" aria-label="特效密度"><option value="1">標準特效</option><option value="1.6">豐富特效</option><option value="0.5">省電特效</option></select><span id="status" role="status">開啟鏡頭，或點擊手勢表預覽特效</span></div>
-<section id="help"><h1>手就是魔法</h1><p>單手各有 10 種特效，左右手使用不同配色；雙手可再組合 4 種。保持手勢即可持續施放，移動手掌會留下軌跡。按 H 隱藏介面，Esc 顯示。數字 0～9 可預覽。</p><div id="list"></div><p>鏡頭影像在本機辨識。需要 HTTPS、網路與攝影機授權。<a href="https://github.com/patch-gg/pixelfx" style="color:#9edaff">PixelFX</a> · MediaPipe</p></section><button id="reveal" aria-label="顯示或隱藏操作介面">☰</button>
+<div id="bar"><button id="start">開啟攝影機</button><button id="sound" aria-pressed="true">音效：開</button><label style="display:flex;align-items:center;gap:6px;font-size:12px">音量 <input id="volume" type="range" min="0" max="0.8" step="0.01" value="0.35" aria-label="音效音量" style="width:75px"></label><button id="guide">手勢表</button><button id="background">黑色背景</button><button id="full">全螢幕</button><button id="hide">隱藏介面</button><select id="quality" aria-label="特效密度"><option value="1">標準特效</option><option value="1.6">豐富特效</option><option value="0.5">省電特效</option></select><span id="status" role="status">開啟鏡頭，或點擊手勢表預覽特效</span></div>
+<section id="help"><h1>手就是魔法</h1><p>單手各有 10 種特效，左右手使用不同配色；雙手可再組合 4 種。保持手勢即可持續施放，移動手掌會留下軌跡。按 H 隱藏介面，Esc 顯示。數字 0～9 可預覽。點擊頁面後啟用音效，雙拳會觸發低頻大爆炸；可調整音量或靜音。</p><div id="list"></div><p>鏡頭影像在本機辨識。需要 HTTPS、網路與攝影機授權。<a href="https://github.com/patch-gg/pixelfx" style="color:#9edaff">PixelFX</a> · MediaPipe</p></section><button id="reveal" aria-label="顯示或隱藏操作介面">☰</button>
 <script type="module">
 const $=id=>document.getElementById(id),video=$('camera'),canvas=$('fx'),ctx=canvas.getContext('2d'),pixel=$('pixel'),pc=pixel.getContext('2d');
 const names=['握拳 · 爆裂火花','1 指 · 流星光筆','2 指 · 雷電雙刃','3 指 · 冰晶旋風','4 指 · 花瓣飛舞','5 指 · 奧術光環','OK · 星河漩渦','讚 · 烈焰升騰','搖滾 · 電音波紋','小指 · 泡泡精靈','雙掌 · 彩虹傳送門','雙拳 · 超新星','雙 1 指 · 電光連線','雙 OK · 愛心星塵'];
 let w=innerWidth,h=innerHeight,dpr=1,stream=null,landmarker=null,lastVideo=-1,lastDetect=0,last=0,particles=[],rings=[],bolts=[],hands=[],tracks=new Map(),pairLast=-Infinity,pairKey='',effects=[],pixelApi=null,opening=false,generation=0;
 function resize(){w=innerWidth;h=innerHeight;dpr=Math.min(devicePixelRatio||1,2);canvas.width=w*dpr;canvas.height=h*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);pixel.width=480;pixel.height=Math.max(1,Math.round(480*h/w));if(pixelApi)pixelApi.frame=pixelApi.createFrame(pixel.width,pixel.height)}addEventListener('resize',resize);resize();
 const rand=(a,b)=>a+Math.random()*(b-a),dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y),cap=()=>Math.round(1200*Number($('quality').value));
+// Synthesized locally: no audio downloads, microphone, or autoplay.
+let audioContext=null,master=null,noiseBuffer=null,soundOn=true;
+const soundTimes=new Map(),voices=new Set();
+function unlockAudio(){
+  try{const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)return;
+    if(!audioContext){audioContext=new Audio();master=audioContext.createGain();master.gain.value=Number($('volume').value);const limiter=audioContext.createDynamicsCompressor();limiter.threshold.value=-18;limiter.ratio.value=8;master.connect(limiter);limiter.connect(audioContext.destination);noiseBuffer=audioContext.createBuffer(1,audioContext.sampleRate*2,audioContext.sampleRate);const data=noiseBuffer.getChannelData(0);for(let i=0;i<data.length;i++)data[i]=Math.random()*2-1;}
+    if(audioContext.state==='suspended')audioContext.resume().catch(()=>{});
+  }catch(e){console.info('音效未啟用',e)}
+}
+function stopSounds(){for(const source of voices){try{source.stop()}catch{}}voices.clear()}
+function tone(start,freq,end,duration,type='sine',level=.15){
+  const a=audioContext,source=a.createOscillator(),gain=a.createGain();source.type=type;source.frequency.setValueAtTime(freq,start);source.frequency.exponentialRampToValueAtTime(Math.max(20,end),start+duration);gain.gain.setValueAtTime(0,start);gain.gain.linearRampToValueAtTime(level,start+.012);gain.gain.exponentialRampToValueAtTime(.0001,start+duration);source.connect(gain);gain.connect(master);voices.add(source);source.onended=()=>{voices.delete(source);source.disconnect();gain.disconnect()};source.start(start);source.stop(start+duration+.02);
+}
+function noise(start,duration,cutoff,level=.18,type='lowpass'){
+  const a=audioContext,source=a.createBufferSource(),gain=a.createGain(),filter=a.createBiquadFilter();source.buffer=noiseBuffer;filter.type=type;filter.frequency.value=cutoff;gain.gain.setValueAtTime(0,start);gain.gain.linearRampToValueAtTime(level,start+.008);gain.gain.exponentialRampToValueAtTime(.0001,start+duration);source.connect(filter);filter.connect(gain);gain.connect(master);voices.add(source);source.onended=()=>{voices.delete(source);source.disconnect();filter.disconnect();gain.disconnect()};source.start(start);source.stop(start+duration+.02);
+}
+function playSound(id){
+  if(!soundOn||!audioContext||audioContext.state!=='running'||document.hidden)return;
+  const now=audioContext.currentTime;if(now-(soundTimes.get(id)??-Infinity)<(id===11?1:.22))return;
+  if(voices.size>36)return;soundTimes.set(id,now);
+  try{
+    if(id===11){stopSounds();noise(now,1.25,850,.65);noise(now,.16,4200,.22);tone(now,135,28,1.3,'sine',.65);tone(now+.04,65,24,1.5,'triangle',.25);return}
+    if(id===0){noise(now,.35,1800,.28);tone(now,180,45,.3,'triangle',.24)}
+    if(id===1)tone(now,420,1600,.25,'sine',.12);
+    if(id===2||id===12){noise(now,.22,id===12?4500:3200,.16,'highpass');tone(now,180,65,.2,'sawtooth',.07);if(id===12)tone(now+.1,900,220,.3,'triangle',.1)}
+    if(id===3)[1200,1800,2400].forEach((f,i)=>tone(now+i*.055,f,f*.7,.3,'sine',.09));
+    if(id===4)[660,880,990].forEach((f,i)=>tone(now+i*.07,f,f,.22,'sine',.08));
+    if(id===5||id===10)[220,330,440,660].forEach((f,i)=>tone(now+i*.06,f,f*1.5,id===10?.65:.4,'sine',.09));
+    if(id===6)[392,494,587,784].forEach((f,i)=>tone(now+i*.06,f,f*1.02,.35,'triangle',.08));
+    if(id===7){noise(now,.5,1200,.2);tone(now,90,220,.4,'triangle',.12)}
+    if(id===8)[110,165,220].forEach((f,i)=>tone(now+i*.08,f,f*.8,.18,'square',.035));
+    if(id===9)[500,750,1100].forEach((f,i)=>tone(now+i*.09,f,f*1.8,.12,'sine',.13));
+    if(id===13)[523,659,784,1047].forEach((f,i)=>tone(now+i*.085,f,f,.5,'sine',.09));
+  }catch(e){console.info('略過音效',e)}
+}
+$('sound').onclick=()=>{unlockAudio();soundOn=!soundOn;$('sound').textContent=soundOn?'音效：開':'音效：關';$('sound').setAttribute('aria-pressed',String(soundOn));if(!soundOn)stopSounds()};
+$('volume').oninput=()=>{unlockAudio();if(master)master.gain.setTargetAtTime(Number($('volume').value),audioContext.currentTime,.03)};
+addEventListener('pointerdown',unlockAudio);addEventListener('keydown',unlockAudio);
+addEventListener('visibilitychange',()=>{if(document.hidden){stopSounds();audioContext?.suspend().catch(()=>{})}});
+addEventListener('pagehide',stopSounds);
+
 function color(id,side=0){return (id*33+(side?185:15))%360}
 function particle(x,y,vx,vy,hue,life=1,size=3,shape='spark'){particles.push({x,y,vx,vy,hue,life,max:life,size,shape});if(particles.length>cap())particles.splice(0,particles.length-cap())}
-function emit(id,x,y,side=0,scale=1){let hue=color(id,side),n=Math.round((id===11?100:32)*Number($('quality').value)*scale);for(let i=0;i<n;i++){let a=rand(0,Math.PI*2),v=rand(30,180),shape='spark';if(id===1){a=rand(1.2,1.9);v=rand(30,100)}if(id===3)shape='snow';if(id===4)shape='petal';if(id===7){a=rand(-2,-1);v=rand(60,200);hue=rand(5,50)}if(id===9)shape='bubble';if(id===13)shape='heart';if(id===6){a=i/n*Math.PI*2;v=100;shape='star'}if(id===10)hue=i/n*360;particle(x,y,Math.cos(a)*v,Math.sin(a)*v,hue,rand(.5,1.7),rand(2,6),shape)}
+function emit(id,x,y,side=0,scale=1){playSound(id);let hue=color(id,side),n=Math.round((id===11?100:32)*Number($('quality').value)*scale);for(let i=0;i<n;i++){let a=rand(0,Math.PI*2),v=rand(30,180),shape='spark';if(id===1){a=rand(1.2,1.9);v=rand(30,100)}if(id===3)shape='snow';if(id===4)shape='petal';if(id===7){a=rand(-2,-1);v=rand(60,200);hue=rand(5,50)}if(id===9)shape='bubble';if(id===13)shape='heart';if(id===6){a=i/n*Math.PI*2;v=100;shape='star'}if(id===10)hue=i/n*360;particle(x,y,Math.cos(a)*v,Math.sin(a)*v,hue,rand(.5,1.7),rand(2,6),shape)}
 if([0,5,6,8,10,11].includes(id)){rings.push({x,y,r:8,life:1,max:1,hue,id});if(rings.length>32)rings.shift()}if(id===2){for(let k=-1;k<=1;k+=2)bolts.push({x,y,tx:x+k*rand(60,180),ty:y-rand(40,200),life:.22,hue})}if(bolts.length>40)bolts.splice(0,bolts.length-40);
 if(pixelApi&&pixelApi.modules[id]){try{effects.push({fx:pixelApi.createFx(pixelApi.modules[id],{x:Math.round(x/w*pixel.width),y:Math.round(y/h*pixel.height),seed:Math.floor(rand(0,1e7))}),age:0});if(effects.length>8)effects.shift().fx.stop()}catch(e){console.warn(e)}}}
 function classify(lm){const bits=[[8,6,5],[12,10,9],[16,14,13],[20,18,17]].map(([tip,pip,mcp])=>dist(lm[tip],lm[mcp])>dist(lm[pip],lm[mcp])*1.45&&dist(lm[tip],lm[0])>dist(lm[pip],lm[0])*1.1);const thumb=dist(lm[4],lm[17])>dist(lm[3],lm[17])*1.18;const palm=dist(lm[0],lm[9]);if(dist(lm[4],lm[8])<palm*.38&&bits[1]&&bits[2]&&bits[3])return 6;if(thumb&&bits.every(b=>!b))return 7;if(bits[0]&&!bits[1]&&!bits[2]&&bits[3])return 8;if(!bits[0]&&!bits[1]&&!bits[2]&&bits[3])return 9;return bits.filter(Boolean).length+(thumb?1:0)}
